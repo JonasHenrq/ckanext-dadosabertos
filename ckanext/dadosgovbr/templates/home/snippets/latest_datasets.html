@@ -1,0 +1,41 @@
+<div class="box" id="latest-datasets" data-content="teste2">
+  <section>
+    <header class="module-heading">
+      <h3><a href="{{h.url_for('revision','list')}}">Publicações mais recentes</a></h3>
+    </header>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Conjunto de dados</th>
+          <th style="width: 90px;">Data</th>
+          <th style="width: 140px;">Responsável</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dataset in h.dadosgovbr_most_recent_datasets(5) %}
+          <tr>
+            <td><a href="{{dataset.link}}" title="{{dataset.title}}">{{dataset.title}}</a></td>
+            <td>{{dataset.time}}</td>
+
+            {# Organization #}
+            {% if dataset.owner_org %}
+              <td>
+                <a href="{{h.url_for('home','index')}}organization/{{dataset.organization.name}}" title="{{dataset.organization.title}}">
+                  {{h.dadosgovbr_trim_letter(dataset.organization.title, 36)}}
+                </a>
+              </td>
+            {# Autor #}
+            {% else %}
+              <td>
+                <div class="author" data-content="{{dataset.author}}" title="{{dataset.author}}">
+                  {{h.dadosgovbr_trim_letter(dataset.author, 36)}}
+                </div>
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>

@@ -1,0 +1,365 @@
+{% set eouv_contador = h.dadosgovbr_get_contador_eouv(pkg_name) %}
+<div id="feedback-eouv" class="ui blurring segment">
+  <!-- Botões principais -->
+  <div class="ui basic center" style="text-align:center;">
+    <h4 class="ui header msg-title">Estes dados estão disponíveis como o esperado?</h4>
+    
+    <div class="ui labeled buttons">
+      <button class="ui labeled button sim" tabindex="0">
+        <a class="ui basic green right pointing label" id="ouv_like_counter" style="min-height: 36px; border-radius: 5px 0 0 5px;">
+          {{eouv_contador['nro_likes']}}
+        </a>
+        <div class="ui green button">
+          <i class="thumbs up chevron icon"></i> Sim
+        </div>
+      </button>
+      <div class="or" data-text="ou"></div>
+      <button class="ui labeled button nao" tabindex="0">
+        <div class="ui orange button" style="border-radius: 0;">
+          <i class="thumbs down chevron icon"></i> Não
+        </div>
+        <a class="ui basic orange left pointing label" id="ouv_dislike_counter" style="min-height: 36px; border-radius: 0 5px 5px 0;">
+          {{eouv_contador['nro_dislikes']}}
+        </a>
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulário / Ouvidoria -->
+  <div class="dimmable form-problems" style="display:none;">
+    <hr>
+    <h4 class="ui header msg-error" style="display:none;" align="justify">Desculpe-nos. Verifique se a solução para o seu problema está na relação de <a href="/pagina/faq-dataset" style="color:#769F29;">perguntas frequentes</a>. Diga-nos o motivo para que possamos buscar uma solução.</h4>
+
+    <div style="padding: 10px; position: relative;">
+        <form class="ui reply form" id="form_eouv">
+          <div class="checkbox-group required">
+            <div class="ui inline checkbox">
+              <input type="checkbox" name="eouv-motivo-1" tabindex="1">
+              <label style="z-index: 4;" name="eouv-motivo-1">Os dados estão desatualizados.</label>
+            </div>
+          
+            <div class="ui inline checkbox">
+              <input type="checkbox" name="eouv-motivo-2" tabindex="2">
+              <label style="z-index: 4;" name="eouv-motivo-2">Não consegui acessar o conjunto de dados(especifique o recurso).</label>
+            </div>
+          
+            <div class="ui inline checkbox">
+              <input type="checkbox" name="eouv-motivo-3" tabindex="3">
+              <label style="z-index: 4;" name="eouv-motivo-3">Documentação insuficiente para compreender o conjunto de dados.</label>
+            </div>
+          
+            <div class="ui inline checkbox">
+              <input type="checkbox" name="eouv-motivo-4" tabindex="4">
+              <label style="z-index: 4;" name="eouv-motivo-4">Os dados contém erro ou inconsistência.</label>
+            </div>
+        
+            <div class="ui attached field" style="padding-top: 12px;">
+              <label for="eouv-text">Descreva a situação encontrada</label>
+              <textarea name="eouv-text" id="situacao_encontrada" tabindex="5" style="margin-bottom: 16px;"></textarea>
+            </div>
+          </div>
+
+          <!-- Campos opcionais -->
+          <div class="botao_campos_opcionais">
+            <div class="ui segment">
+              <div class="field">
+                <div class="ui checkbox mostrar_campos_opcionais">
+                  <input type="checkbox" name="ser_identificado" tabindex="6">
+                  <label style="z-index: 4;" for="ser_identificado" align="justify">Sua avaliação será enviada para o sistema de Ouvidoria e-Ouv como uma reclamação. Clique aqui caso queira acompanhar seu andamento.</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="campos_opcionais" style="display:none;">
+            <hr>
+
+            <div class="field">
+              <label>Nome</label>
+              <input type="text" name="eouv-name" placeholder="" tabindex="7">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email" name="eouv-email" placeholder="" tabindex="8">
+            </div>
+            <!--<div class="field">
+              <div class="ui checkbox">
+                <input type="checkbox" class="hidden" name="eouv-receber-email" tabindex="0">
+                <label>Desejo receber email para acompanhar o relato.</label>
+              </div>
+            </div>-->
+          </div>
+
+          <hr>
+          <div id="submit">
+          <button type="submit" class="ui button enviar" tabindex="9">Enviar manifestação para ouvidoria</button>
+          <button class="ui loading button carregando" style="display:none">Carregando</button>
+          </div>
+          <div id="submit_block" data-tooltip="Por favor, selecione pelo menos um dos motivos e/ou descreva a situação encontrada" data-position="bottom left">
+            <button class="ui disabled button">Enviar manifestação para ouvidoria</button>
+          </div>
+        </form>
+    </div>
+  </div>
+
+  <!-- Mensagem / Enviado com sucesso -->
+  <div class="ui inverted dimmer transition">
+    <div class="content">
+      <div class="center">
+        <h2 class="ui icon header">
+          <i class="checkmark icon" style="display:none;"></i>
+          <span class="msg">Obrigado!</span>
+        </h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function(){
+  var eouv = $("#feedback-eouv");
+
+
+  // function Rebuild tabindex
+  // ==============================================
+  function rebuildTabindex () {
+    var tabindex = 1;
+    $('input,select').each(function() {
+        if (this.type != "hidden") {
+            var $input = $(this);
+            $input.attr("tabindex", tabindex);
+            tabindex++;
+        }
+    });
+  }
+
+  // function verifica se pelo menos um checkbox foi selecionado e/ou situacao encontrada foi preenchida
+  // caso esteja prenchida, o botão enviar manifestação é ativado. Caso contrario é exibido o botão desativado.
+  // ==============================================
+  function verifica_campos_nulos () {
+    var info_adicionais = form_eouv.situacao_encontrada.value;
+    if(($('div.checkbox-group.required :checkbox:checked').length > 0)||(info_adicionais != "")){
+      $("#submit_block").hide();
+      $("#submit").show();
+    }else{
+      $("#submit").hide();
+      $("#submit_block").show();
+    }
+  }
+  $('div.checkbox-group.required').get()[0].addEventListener('change', verifica_campos_nulos);
+  document.getElementById('situacao_encontrada').addEventListener("keyup", verifica_campos_nulos);
+  $('div.checkbox-group.required').click(function() {
+    setTimeout(verifica_campos_nulos, 80);
+  });
+
+  // function Mostrar campos opcionais
+  // ==============================================
+  function campos_opcionais_atualizar () {
+    if($('.mostrar_campos_opcionais input').is(":checked"))
+      $('.campos_opcionais').show();
+    else
+      $('.campos_opcionais').hide();
+  }
+  $('.mostrar_campos_opcionais input').get()[0].addEventListener('change', campos_opcionais_atualizar);
+  $('.mostrar_campos_opcionais').click(function() {
+    setTimeout(campos_opcionais_atualizar, 80);
+  });
+
+
+  // ==============================================
+  // Se avaliar como "Sim"
+  // ==============================================
+  eouv.find(".sim").on("click", function(){
+    eouv.find(".msg").html("Obrigado!<br>Sua avaliação foi contabilizada.");
+    eouv.find('.dimmer').addClass('active');
+
+
+    var data_eouv = { 
+      package_id: $('#package_id').html(),
+      package_name: $('#package_name').html()
+    }
+      
+    // Envia requisição
+    $.ajax({ url      : "/eouv/new_positive", 
+             type     : 'POST',
+             data     : data_eouv,
+             dataType : 'xml' 
+          })
+
+      // Sucesso na requisição
+      .done(function( data ) {
+        console.log(data);
+      });
+  });
+
+
+  // ==============================================
+  // Se avaliar como "Não"
+  // ==============================================
+  eouv.find(".nao").on("click", function(){
+    eouv.find(".form-problems").show();
+    eouv.find(".sim").removeClass("sim").addClass("disabled");
+    eouv.addClass("red").removeClass("green");
+    eouv.find(".msg-title").html('');
+    eouv.find(".msg-error").show();
+    $("#submit").hide();
+  });
+
+  // Enviar problema para ouvidoria
+  eouv.find('form').submit(function(event) {
+    event.preventDefault();
+    eouv.find('.enviar').hide();
+    eouv.find('.carregando').show();
+
+    
+    // Msg Sucesso
+    // ==============================================
+    function msg_sucesso () {
+        eouv.find("i.checkmark").show(); // Exibe ícone
+        eouv.removeClass("red"); // Remove top border
+        eouv.find(".msg").html("Sua manifestação foi enviada para o Sistema de Ouvidoria <br>e-Ouv.<br>Protocolo: <span class='protocolo'></span>");
+        eouv.find('.dimmer').addClass('active');
+    }
+
+    // Msg Erro
+    // ==============================================
+    function msg_erro () {
+        eouv.find("i.checkmark").show().removeClass('checkmark').addClass('warning sign red'); // Exibe ícone
+        eouv.removeClass("red"); // Remove top border
+        eouv.find(".msg").html("Erro ao enviar sua mensagem para a ouvidoria.<br>Por favor, tente mais tarde.");
+        eouv.find('.dimmer').addClass('active');
+    }
+
+    // ==============================================
+    // Conteúdo a ser enviado para o server
+    // ==============================================
+    var data_eouv_text = "";
+    $('input[name^=eouv-motivo-]').each(function() {
+      if ($(this).is(":checked")) {
+        data_eouv_text += "- "+$(this).parent().find('label').html();
+        data_eouv_text += "\n";
+      }
+    });
+    if(data_eouv_text.length > 0){
+      data_eouv_text = 'Opções marcadas:\n'+data_eouv_text
+    }
+    if($('textarea[name=eouv-text]').val().length > 0){
+      data_eouv_text += "\nDescrição da manifestação:\n"+$('textarea[name=eouv-text]').val();
+    }
+
+    $('input[name^=eouv-name]')
+    $('input[name^=eouv-email]')
+    $('input[name^=eouv-receber-email]')
+
+    var data_eouv = { 
+      package_id: $('#package_id').html(),
+      package_name: $('#package_name').html(),
+      siorg: $('#package_siorg').html(),
+      text: data_eouv_text,
+      name: $('input[name^=eouv-name]').val(),
+      email: $('input[name^=eouv-email]').val(),
+      receber_email: +$('input[name^=eouv-receber-email]').is(":checked")
+    }
+
+    // Função que converte xml em JSON para tratar o resultado da manifestação
+    xmlToJson = function(xml) {
+      var obj = {};
+      if (xml.nodeType == 1) {                
+          if (xml.attributes.length > 0) {
+              obj["@attributes"] = {};
+              for (var j = 0; j < xml.attributes.length; j++) {
+                  var attribute = xml.attributes.item(j);
+                  obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
+              }
+          }
+      } else if (xml.nodeType == 3) { 
+          obj = xml.nodeValue;
+      }            
+      if (xml.hasChildNodes()) {
+          for (var i = 0; i < xml.childNodes.length; i++) {
+              var item = xml.childNodes.item(i);
+              var nodeName = item.nodeName;
+              if (typeof (obj[nodeName]) == "undefined") {
+                  obj[nodeName] = xmlToJson(item);
+              } else {
+                  if (typeof (obj[nodeName].push) == "undefined") {
+                      var old = obj[nodeName];
+                      obj[nodeName] = [];
+                      obj[nodeName].push(old);
+                  }
+                  obj[nodeName].push(xmlToJson(item));
+              }
+          }
+      }
+      return obj;
+    }
+
+    // DEBUG
+    console.log(data_eouv);
+    
+    // Envia requisição
+    $.ajax({ url      : "/eouv/new_negative", 
+             type     : 'POST',
+             data     : data_eouv,
+             dataType : 'text' 
+          })
+
+      // Sucesso na requisição
+      .done(function( data ) {
+        console.log(data);  
+        var xmlDoc = $.parseXML(data);
+
+        dataJson = JSON.stringify(xmlToJson(xmlDoc));
+
+        var objJSON = JSON.parse(dataJson);
+          
+        Protocolo = objJSON["s:Envelope"]["s:Body"].RegistrarManifestacaoTerceiroResponse.RegistrarManifestacaoTerceiroResult["a:Protocolo"]["#text"];
+
+        CodigoErro = objJSON["s:Envelope"]["s:Body"].RegistrarManifestacaoTerceiroResponse.RegistrarManifestacaoTerceiroResult["a:CodigoErro"]["#text"]
+
+        // Exibe botão de submit de novo
+        eouv.find('.enviar').show();
+        eouv.find('.carregando').hide();
+
+        // Servidor retornou com sucesso
+        if (CodigoErro == 0) {
+          msg_sucesso();
+          eouv.find(".protocolo").html(Protocolo)
+        }
+
+        // Servidor retornou com erro
+        else {
+          msg_erro();
+        }
+      })
+
+      // Erro na requisição
+      .fail(function( data ) {
+        // Exibe botão de submit de novo
+        eouv.find('.enviar').show();
+        eouv.find('.carregando').hide();
+
+        msg_erro();
+      });
+
+  });
+
+
+
+  // ==============================================
+  // Semantic UI - FIX checkbox
+  // ==============================================
+  $('.ui.checkbox').click(function() {
+    var checkbox_field = $(this).find('input');
+    var checked = !checkbox_field.is(":checked");
+    checkbox_field.prop('checked', checked);
+  });
+  $('.ui.checkbox').bind('keypress', function(e) {
+    if (e.which == 32){ // Spacebar press
+      var checkbox_field = $(this).find('input');
+      var checked = !checkbox_field.is(":checked");
+      checkbox_field.prop('checked', checked);
+    }
+  });
+});
+</script>

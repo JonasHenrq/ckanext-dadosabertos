@@ -1,2 +1,2 @@
-BeautifulSoup==3.2.1
-var_dump
+raven==6.4.0
+ckanext-sentry

@@ -1,0 +1,120 @@
+{
+  "scheming_version": 1,
+  "dataset_type": "inventario",
+  "about_url": "http://catalogo.governoeletronico.gov.br/manual_catalogo",
+  "dataset_fields": [
+    {
+      "field_name": "title",
+      "label": "Nome da base",
+      "preset": "title",
+      "form_placeholder": "ex. Sistema de Óbitos - SISOBI",
+      "required": "true"
+    },
+    {
+      "field_name": "name",
+      "label": "URL",
+      "preset": "dataset_slug",
+      "form_placeholder": "ex. sistema-de-obitos"
+    },
+    {
+      "field_name": "notes",
+      "label": "Descrição",
+      "form_snippet": "markdown.html",
+      "form_placeholder": "ex.: Descrição sucinta da base. Inclua objetivos,  finalidades, etc.",
+      "required": "true"
+    },
+    {
+      "field_name": "owner_org",
+      "label": "Organização",
+      "preset": "dataset_organization"
+    },
+    {
+      "field_name": "nome_orgao",
+      "label": "Unidade responsável pela base",
+      "help_text": "Unidade responsável pela Base de Dados. Area que possui o Não é a área de TI.",
+      "form_placeholder": "ex. Secretaria de Orçamento e Finanças",
+      "required": "true"
+    },
+    {
+      "field_name": "author_email",
+      "label": "E-mail para Contato",
+      "form_placeholder": "E-mail institucional para contato (público)",
+      "display_property": "dc:creator",
+      "display_snippet": "email.html",
+      "required": "true"
+    },
+    {
+      "field_name": "author_telefone",
+      "label": "Telefone para Contato",
+      "form_placeholder": "DDD + Número",
+      "display_property": "dc:creator"
+    },
+    {
+      "field_name": "tag_string",
+      "label": "Etiquetas",
+      "preset": "tag_string_autocomplete",
+      "help_text": "Adicione algumas palavras chaves sobre a base para facilitar a busca de informações",
+      "form_placeholder": "ex: óbitos, pesca, agricultura, licitações, passagens, carro, desempregados, etc"
+    },
+    {
+      "field_name": "atualizacoes_base",
+      "label": "Frequencia de atualização",
+      "help_text": "Selecione com qual frequência esta base de dados sofre mudanças",
+      "required": "true",
+      "preset": "select",
+      "choices": [
+        {
+          "value": "anual",
+          "label": "Anual"
+        },
+        {
+          "value": "semestral",
+          "label": "Semestral"
+        },
+        {
+          "value": "mensal",
+          "label": "Mensal"
+        },
+        {
+          "value": "semanal",
+          "label": "Semanal"
+        },
+        {
+          "value": "diario",
+          "label": "Diário"
+        },
+        {
+          "value": "demanda",
+          "label": "Sob demanda (quando um usuário ou gestor demanda)"
+        },
+        {
+          "value": "outro",
+          "label": "Outro"
+        }
+      ]
+    }
+  ],
+  "resource_fields": [
+    {
+      "field_name": "url",
+      "label": "URL",
+      "preset": "resource_url_upload"
+    },
+    {
+      "field_name": "name",
+      "label": "Nome do recurso",
+      "form_placeholder": "ex. Dicionário de Dados / Modelo Entidade Relacionamento / Outros recursos"
+    },
+    {
+      "field_name": "description",
+      "label": "Descrição",
+      "form_snippet": "markdown.html",
+      "form_placeholder": "Uma descrição útil do recurso"
+    },
+    {
+      "field_name": "format",
+      "label": "Formato do recurso",
+      "preset": "resource_format_autocomplete"
+    }
+  ]
+}
